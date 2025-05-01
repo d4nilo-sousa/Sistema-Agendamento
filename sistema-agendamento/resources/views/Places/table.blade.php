@@ -24,9 +24,16 @@
             <td>{{ $place->name}}</td>
             <td>{{ $place->capacity}}</td>
             <td>{{ $place->description}}</td>
-            <td>
-                <button class="btn btn-secondary">Editar</button>
-                <button class="btn btn-danger">Excluir</button>
+            <td class="d-flex gap-1">
+
+                <a href="/places/{{$place->id}}/edit" class="btn btn-secondary">Editar</a>
+               
+               
+                <form action="/places/{{$place->id}}" method="POST">
+                    @csrf
+                    @method('delete')
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
             </td>
 
         </tr>

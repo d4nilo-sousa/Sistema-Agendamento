@@ -49,4 +49,22 @@ class PlaceController extends Controller
         $place->delete();
         return redirect('/places');
     }// fim do destroy
+
+    public function edit($id){
+        $place = Place::findOrFail($id);
+        return view('Places/form', ["place"=>$place]);
+    }//fim do edit
+
+    public function update(Request $request, $id){
+        $place = Place::findOrFail($id);
+        $place->name = $request->name;
+        $place->description = $request->description;
+        $place->capacity = $request->capacity;
+        $place->save();
+        return redirect('/places');
+    }
 }
+
+
+
+
