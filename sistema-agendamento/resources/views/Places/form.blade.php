@@ -8,7 +8,7 @@
        <form action="{{isset($place) ? '/places/'.$place->id : '/places/new'}}" method="POST">
         @csrf
         @if(isset($place))
-        @method('PUT')
+        @method('put')
         @endif
            <label for="">Nome do Espaço</label>
            <input class="form-control" type="text" name="name" value="{{$place->name ?? null}}">
@@ -25,5 +25,34 @@
        </form>
     </div>
 </div>
+
+<!--Toast-->
+<button type="button" class="btn btn-primary" id="liveToastBtn">Show live toast</button>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div data-bs-delay="2500" id="liveToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">✔ Bootstrap</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      {{ session('success')}}
+    </div>
+  </div>
+</div>
+
 @endsection
 
+@section ('scripts')
+@if (session('success') != null)
+    
+@endif
+<script>
+
+    const toastLiveExample = document.getElementById('liveToast')   
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+    toastBootstrap.show()
+
+</script>
+
+@endsection
