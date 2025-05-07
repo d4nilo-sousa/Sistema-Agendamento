@@ -56,11 +56,13 @@ class PlaceController extends Controller
     }//fim do edit
 
     public function update(Request $request, $id){
-        $place = Place::findOrFail($id);
+        $place = Place::findOrFail($request->id);
+
         $place->name = $request->name;
         $place->description = $request->description;
         $place->capacity = $request->capacity;
-        $place->save();
+
+        $place->update();
         return redirect('/places');
     }
 }
