@@ -55,7 +55,7 @@ class PlaceController extends Controller
         return view('Places/form', ["place"=>$place]);
     }//fim do edit
 
-    public function update(Request $request, $id){
+    public function update(Request $request){
         $place = Place::findOrFail($request->id);
 
         $place->name = $request->name;
