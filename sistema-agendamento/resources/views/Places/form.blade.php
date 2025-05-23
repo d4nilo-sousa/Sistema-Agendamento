@@ -28,7 +28,7 @@
 </div>
 
 <!---Toast-->
-<button type="button" class="btn btn-primary" id="liveToastBtn">Show live toast</button>
+
 
 <div class="toast-container position-fixed top-0 end-0 p-3">
   <div data-bs-delay="2500" id="liveToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
@@ -42,19 +42,11 @@
   </div>
 </div>
 
-@endsection
 
-@section ('scripts')
-@if (session('success') != null)
+
+@if (session('sucess') != null)
+<script src="{{asst('js/toast.js')}}"></script>
     
 @endif
-<script>
-
-    const toastLiveExample = document.getElementById('liveToast')   
-    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
-    toastBootstrap.show()
-
-</script>
-
 @endsection
 

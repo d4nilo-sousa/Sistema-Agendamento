@@ -41,7 +41,7 @@ class PlaceController extends Controller
         $place->save();
 
         // Redireciona para a página inicial após salvar
-        return redirect("/");
+        return redirect()->back()->with('success', 'Cadastrado com Sucesso');
     }
 
     public function destroy($id){
@@ -57,16 +57,16 @@ class PlaceController extends Controller
 
     public function update(Request $request){
         $place = Place::findOrFail($request->id);
-
+       
         $place->name = $request->name;
         $place->description = $request->description;
         $place->capacity = $request->capacity;
 
         $place->update();
+
         return redirect('/places');
-    }
+        
+    } //fim do update
 }
-
-
 
 

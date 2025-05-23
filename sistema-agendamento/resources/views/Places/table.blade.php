@@ -29,11 +29,11 @@
                 <a href="/places/{{$place->id}}/edit" class="btn btn-secondary">Editar</a>
                
                
-                <form action="/places/{{$place->id}}" method="POST">
-                    @csrf
-                    @method('delete')
-                    <button type="submit" class="btn btn-danger">Excluir</button>
-                </form>
+             <!--=- data: Atributos de dados personalizados ---->
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmationModal" data-place-id="{{$place->id}}">
+                    Excluir
+                </button>
+
             </td>
 
         </tr>
@@ -43,7 +43,7 @@
                 <td colspan="5" class="text-center p-3">Nada aqui zé 😞
                 <h3 class="fw-light"></h3>
                 <p>Para Cadastrar um ambiente
-                     <a href="http://">Clique Aqui</a>
+                     <a href="/places/new">Clique Aqui</a>
                 </p>
                 
                 </td>
@@ -51,9 +51,41 @@
         
     @endforelse
 
-
       </table>   
     </div>
 </div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Atenção</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Deseja realmente excluir este espaço?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+           <form id="delete_place_form" method="POST">
+                    @csrf
+                    @method('delete')
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@endsection
+
+
+@section('scripts')
+<script src="{{asset('js/confirmationModal.js')}}"> </script>
+  
 @endsection
 
