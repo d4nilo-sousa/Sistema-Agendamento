@@ -1,0 +1,50 @@
+/* Navbar personalizada */
+.custom-navbar {
+    background: linear-gradient(90deg, #6a0dad, #8a2be2);
+    padding: 0.8rem 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .custom-navbar .navbar-brand {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.25rem;
+    transition: color 0.3s;
+  }
+  
+  .custom-navbar .navbar-brand:hover {
+    color: #dcd0ff;
+  }
+  
+  .custom-navbar .nav-link {
+    color: #f0e6ff;
+    margin-left: 1rem;
+    transition: color 0.3s, border-bottom 0.3s;
+    position: relative;
+  }
+  
+  .custom-navbar .nav-link:hover,
+  .custom-navbar .nav-link.active {
+    color: #ffffff;
+  }
+  
+  .custom-navbar .nav-link::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background: #ffffff;
+    transition: width 0.3s;
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+  }
+  
+  .custom-navbar .nav-link:hover::after {
+    width: 100%;
+  }
+  
+  .navbar-toggler {
+    border-color: #fff;
+  }
+  
