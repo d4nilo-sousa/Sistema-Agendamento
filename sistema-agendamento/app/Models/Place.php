@@ -9,5 +9,9 @@ class Place extends Model
 {
     //vínculo entre o model e a tabela
     protected $table = "places";
+
+    public function schedules(){
+        return $this->hasMany(Place::class);
+    }
     
 }
