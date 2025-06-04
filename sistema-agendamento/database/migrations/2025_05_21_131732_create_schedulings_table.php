@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('schedulings', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->date('date');
+            $table->tinyInteger('class_number');
+            $table->tinyInteger('Shift');
         });
     }
 
