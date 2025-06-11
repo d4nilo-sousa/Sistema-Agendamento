@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->date('date');
             $table->tinyInteger('class_number');
-            $table->varchar('shift');
+            $table->string('shift');
 
             $table->unsignedBigInteger('place_id');  //chave estrangeira
             $table->foreign('place_id')->references('id')->on('places');  
