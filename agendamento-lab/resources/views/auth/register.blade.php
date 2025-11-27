@@ -8,8 +8,28 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <style>
+        /* 1. DEFINIÇÃO DA COR ROXA (Hex: #6f42c1) */
+        :root {
+            --bs-primary: #6f42c1; /* Cor roxa principal */
+            --bs-primary-rgb: 111, 66, 193; /* RGB correspondente para o gradiente */
+        }
+
+        /* Corrigindo a cor dos botões e textos, pois o Bootstrap já usa a variável --bs-primary */
+        .text-primary {
+            color: var(--bs-primary) !important;
+        }
+        .btn-primary {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+        }
+        .btn-primary:hover {
+            background-color: #5d37a1; /* Um roxo ligeiramente mais escuro para hover */
+            border-color: #5d37a1;
+        }
+
         .cover {
-            background: linear-gradient(rgba(13, 110, 253, 0.8), rgba(13, 110, 253, 0.8)),
+            /* 2. ALTERANDO O GRADIENTE DE AZUL (13, 110, 253) PARA ROXO (var(--bs-primary-rgb)) */
+            background: linear-gradient(rgba(var(--bs-primary-rgb), 0.8), rgba(var(--bs-primary-rgb), 0.8)),
                         url('https://www.clickideia.com.br/blog/wp-content/uploads/2017/10/Fiap-aclimacao-lab-1-e1508848494124.jpg') 
                         no-repeat center center;
             background-size: cover;
@@ -55,7 +75,6 @@
   <body>
     <div class="container-fluid" style="height: 100vh">
       <div class="row h-100">
-        <!-- LADO ESQUERDO -->
         <div class="col-lg-7 cover">
           <h1 class="fw-bold display-4">Agendamento</h1>
           <h2 class="fw-medium fst-italic">"Organize seus horários, facilite seus estudos"</h2>
@@ -68,7 +87,6 @@
           </ul>
         </div>
 
-        <!-- LADO DIREITO -->
         <div class="col-lg-5 d-flex align-items-center justify-content-center p-4">
           <div class="w-100" style="max-width: 400px;">
             <h1 class="fw-bold text-center text-primary display-1 pb-3 title">🔬 AGENDLAB</h1>
@@ -109,6 +127,7 @@
                 <label for="password_confirmation">Confirme a senha</label>
               </div>
 
+              {{-- O botão agora usa a cor roxa devido à substituição da variável --}}
               <button type="submit" class="btn btn-lg btn-primary w-100">
                 <i class="bi bi-person-plus"></i> Criar Conta
               </button>
@@ -117,7 +136,8 @@
             <div class="text-center">
               <small>Já possui uma conta?</small>
 
-              <a href="/login" class="text-decoration-none fw-semibold">Faça login aqui</a>
+              {{-- O link agora usa a cor roxa devido à substituição da variável --}}
+              <a href="/login" class="text-decoration-none fw-semibold text-primary">Faça login aqui</a>
             </div>
           </div>
         </div>
@@ -127,4 +147,3 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
- 
