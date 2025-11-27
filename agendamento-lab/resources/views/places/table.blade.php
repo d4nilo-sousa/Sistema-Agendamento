@@ -1,74 +1,121 @@
 @extends('layout')
 
 @section('content')
-    <div class="card shadow">
-        <div class="card-header bg-secondary"> <h1 class="text-white fw-bold">Meus espaços</h1> </div>
-        <div class="card-body">
-            <table class="table table-hover text-center">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Nome</th>
-                        <th>Capacidade</th>
-                        <th>Descrição</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
 
-                    @forelse ($places as $place)
-                    <tr>
-                        <td>{{$place->id}}</td>
-                        <td>{{$place->name}}</td>
-                        <td>{{$place->capacity}}</td>
-                        <td>{{$place->description}}</td>
-                        <td class="d-flax gap-1">
-                            <a href="/places/{{$place->id}}/edit" class="btn btn-secondary">Editar</a>
+<div class="max-w-6xl mx-auto">
 
-                            <!-- Button trigger modal -->
-                            {{-- data: Atributo de dados personalizados --}}
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmationModal" data-place-id="{{$place->id}}">
-                                Excluir
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                        <td colspan="5">
-                            <h3 class="fw-light">Nenhum ambiente cadastrado</h3>
-                            <p>Para cadastrar um ambiente <a class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="/places/new">clique aqui</a></p>
-                        </td>
-                    @endforelse
-                    
-                </tbody>
-            </table>
+    {{-- Header --}}
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <i class="bi bi-building-fill-gear text-purple-600 text-4xl"></i>
+            <h1 class="text-3xl font-bold text-purple-700">Meus Espaços</h1>
         </div>
-    </div>  
 
+        <a href="/places/new"
+           class="px-4 py-2 rounded-xl bg-purple-600 text-white hover:bg-purple-700 shadow-md transition flex items-center gap-2">
+            <i class="bi bi-plus-circle"></i> Novo Espaço
+        </a>
+    </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">Aviso!</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            Deseja realmente excluir esse espaço?
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    {{-- Card da tabela --}}
+    <div class="bg-white shadow-lg rounded-2xl border border-purple-200 p-4">
+
+        <table class="table table-hover text-center align-middle">
+            <thead class="bg-purple-600 text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Capacidade</th>
+                    <th>Descrição</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody class="table-group-divider">
+
+                @forelse ($places as $place)
+                <tr class="hover:bg-purple-50">
+                    <td class="fw-bold text-purple-700">{{ $place->id }}</td>
+                    <td>{{ $place->name }}</td>
+                    <td>{{ $place->capacity }}</td>
+                    <td class="text-start px-4">{{ $place->description }}</td>
+
+                    <td class="flex justify-center gap-2">
+                        {{-- Editar --}}
+                        <a href="/places/{{ $place->id }}/edit"
+                           class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-pill">
+                            <i class="bi bi-pencil-fill"></i> Editar
+                        </a>
+
+                        {{-- Excluir --}}
+                        <button type="button"
+                            class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 rounded-pill"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmationModal"
+                            data-place-id="{{ $place->id }}">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </button>
+                    </td>
+                </tr>
+
+                @empty
+                <tr>
+                    <td colspan="5" class="py-5">
+                        <div class="flex flex-col items-center text-center text-gray-600">
+                            <i class="bi bi-emoji-frown text-5xl text-purple-500 mb-3"></i>
+                            <h3 class="text-xl font-semibold">Nenhum espaço cadastrado</h3>
+                            <p class="text-sm">Clique abaixo para adicionar um novo.</p>
+
+                            <a href="/places/new"
+                               class="mt-3 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition flex items-center gap-2">
+                                <i class="bi bi-plus-circle"></i> Cadastrar Espaço
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- Modal de confirmação --}}
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content rounded-3 shadow-lg">
+
+        <div class="modal-header bg-purple-600 text-white">
+            <h1 class="modal-title fs-5">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Aviso!
+            </h1>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center py-4">
+            <p class="text-lg">Deseja realmente excluir este espaço?</p>
+        </div>
+
+        <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Cancelar
+            </button>
+
             <form id="delete_place_form" method="POST">
                 @method('delete')
-                @csrf()
-                <button type="submit" class="btn btn-danger">Excluir</button>
+                @csrf
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash-fill"></i> Excluir
+                </button>
             </form>
-            </div>
         </div>
-        </div>
+
     </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
-<script src="{{asset('js/confirmationModal.js')}}"></script>
+<script src="{{ asset('js/confirmationModal.js') }}"></script>
 @endsection
