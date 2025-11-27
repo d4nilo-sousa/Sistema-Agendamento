@@ -13,12 +13,22 @@
         </div>
         
         <div class="flex items-center space-x-3 bg-purple-800 p-2 rounded-lg bg-opacity-50">
-            <a href="{{ route('scheduling.index', ['date' => $prevDay]) }}" class="text-white hover:bg-purple-600 p-2 rounded-full transition" title="Dia Anterior">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </a>
+            {{-- O link 'Anterior' é desativado se a data atual for a de hoje --}}
+            @if ($currentDate > now()->toDateString())
+                <a href="{{ route('scheduling.index', ['date' => $prevDay]) }}" class="text-white hover:bg-purple-600 p-2 rounded-full transition" title="Dia Anterior">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+            @else
+                {{-- Botão desativado para o dia anterior se for hoje --}}
+                <span class="text-gray-400 p-2 rounded-full cursor-not-allowed opacity-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </span>
+            @endif
             
             <div class="text-center">
+                {{-- LIMITAÇÃO DE DATA: min="{{ now()->toDateString() }}" --}}
                 <input type="date" id="date-picker" value="{{ $currentDate }}" 
+                    min="{{ now()->toDateString() }}" 
                     class="bg-white text-gray-800 text-sm font-semibold rounded-md border-0 py-1.5 px-3 focus:ring-2 focus:ring-purple-400 cursor-pointer text-center">
                 <div class="text-xs text-purple-200 mt-1 uppercase font-bold tracking-wider">{{ $dateFormatted }}</div>
             </div>
@@ -28,7 +38,6 @@
             </a>
         </div>
     </div>
-
 
     <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border border-gray-200">
         <div class="overflow-x-auto">
@@ -52,8 +61,10 @@
 
                             @foreach ($places as $place)
                                 @php
+                                    // Verifica se existe agendamento para essa célula (Aula x Lab)
                                     $key = $class . '-' . $place->id;
                                     $schedule = $schedules[$key] ?? null;
+                                    $isTodayOrFuture = \Carbon\Carbon::parse($currentDate)->gte(\Carbon\Carbon::today());
                                 @endphp
 
                                 <td class="p-3 border-r border-gray-100 align-middle">
@@ -65,8 +76,8 @@
                                                 <span>{{ $schedule->user->name ?? 'Usuário' }}</span>
                                             </div>
                                             
-                                            {{-- BOTÃO CANCELAR: Apenas se o usuário logado for o dono da reserva --}}
-                                            @if ($schedule->user_id === Auth::id()) 
+                                            {{-- BOTÃO CANCELAR: Apenas se for o dono E a data for hoje ou futura --}}
+                                            @if ($schedule->user_id === Auth::id() && $isTodayOrFuture) 
                                                 <button 
                                                     class="btn-cancel-schedule mt-2 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md transition"
                                                     data-scheduling-id="{{ $schedule->id }}"
@@ -76,15 +87,19 @@
                                             @endif
                                         </div>
                                     @else
-                                        <button 
-                                            class="btn-schedule w-full group flex items-center justify-center space-x-2 py-2 px-4 rounded-lg border border-purple-200 text-purple-600 font-semibold hover:bg-purple-600 hover:text-white hover:border-purple-600 hover:shadow-md transition-all duration-200"
-                                            data-place-id="{{ $place->id }}"
-                                            data-class-number="{{ $class }}"
-                                            data-shift="MANHA"
-                                        >
-                                            <span class="group-hover:hidden">Disponível</span>
-                                            <span class="hidden group-hover:inline">Agendar <i class="fa-solid fa-plus ml-1"></i></span>
-                                        </button>
+                                        @if ($isTodayOrFuture)
+                                            <button 
+                                                class="btn-schedule w-full group flex items-center justify-center space-x-2 py-2 px-4 rounded-lg border border-purple-200 text-purple-600 font-semibold hover:bg-purple-600 hover:text-white hover:border-purple-600 hover:shadow-md transition-all duration-200"
+                                                data-place-id="{{ $place->id }}"
+                                                data-class-number="{{ $class }}"
+                                                data-shift="MANHA"
+                                            >
+                                                <span class="group-hover:hidden">Disponível</span>
+                                                <span class="hidden group-hover:inline">Agendar <i class="fa-solid fa-plus ml-1"></i></span>
+                                            </button>
+                                        @else
+                                            <span class="text-sm text-gray-400">Data Passada</span>
+                                        @endif
                                     @endif
                                 </td>
                             @endforeach
@@ -99,7 +114,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         
-        // 1. Mudança de Data (Recarrega a página) - Mantido
+        // 1. Mudança de Data (Recarrega a página)
         const dateInput = document.getElementById('date-picker');
         dateInput.addEventListener('change', function() {
             window.location.href = "{{ route('scheduling.index') }}?date=" + this.value;
@@ -134,7 +149,7 @@
                     body: JSON.stringify(schedulingData)
                 })
                 .then(response => {
-                    // *** NOVO TRATAMENTO DE ERRO AQUI ***
+                    // *** TRATAMENTO DE ERRO ROBUSTO (422, 409, 500) ***
                     if (!response.ok) {
                         return response.json().then(errorData => {
                             let errorMessage = 'Erro desconhecido na requisição.';
@@ -150,11 +165,9 @@
                                 errorMessage = errorData.errors[firstKey][0];
                             }
                             
-                            // Lança um erro para cair no bloco .catch()
                             throw new Error(errorMessage);
                         });
                     }
-                    // Se OK (200-299), retorna o JSON para o próximo bloco .then
                     return response.json();
                 })
                 .then(data => {
@@ -175,7 +188,7 @@
             });
         });
 
-        // 3. Lógica de Cancelamento (Destroy) - Mantida, mas ajuste o .catch para usar o novo padrão
+        // FUNÇÃO DE TRATAMENTO DE REQUISIÇÃO (DESTROY)
         const cancelButtons = document.querySelectorAll('.btn-cancel-schedule');
         cancelButtons.forEach(button => {
             button.addEventListener('click', function(e) {
@@ -186,7 +199,7 @@
                     return;
                 }
 
-                // ... (Estado de loading) ...
+                // Estado de loading
                 const originalText = this.innerHTML;
                 this.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cancelando...';
                 this.disabled = true;
@@ -201,7 +214,6 @@
                     }
                 })
                 .then(response => {
-                    // *** NOVO TRATAMENTO DE ERRO PARA DELETE ***
                     if (!response.ok) {
                         return response.json().then(errorData => {
                             let errorMessage = errorData.message || 'Erro desconhecido ao cancelar.';
@@ -228,7 +240,27 @@
 
         // 4. Websocket (Echo) - Mantido
         if (typeof window.Echo !== 'undefined') {
-            // ... (Lógica do Echo) ...
+            window.Echo.channel('schedules')
+                .listen('.scheduling.created', (e) => {
+                    // Verifica se o agendamento recebido é para a data que estamos vendo
+                    if (e.schedule.date === dateInput.value) {
+                        // Encontra o botão correspondente
+                        const btn = document.querySelector(`button[data-place-id="${e.schedule.place_id}"][data-class-number="${e.schedule.class_number}"]`);
+                        
+                        if (btn) {
+                            const td = btn.parentElement;
+                            // Substitui o botão pelo card de "Reservado"
+                            td.innerHTML = `
+                                <div class="flex flex-col items-center justify-center p-2 bg-red-50 border border-red-100 rounded-lg shadow-sm animate-pulse">
+                                    <span class="text-xs font-bold text-red-600 uppercase mb-1">Novo!</span>
+                                    <div class="flex items-center space-x-1 text-gray-700 font-medium text-sm">
+                                        <span>Ocupado</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                });
         }
     });
 </script>

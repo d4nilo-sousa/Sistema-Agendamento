@@ -49,14 +49,13 @@ class SchedulingController extends Controller
     {
         // 1. Validação dos dados recebidos
         $validated = $request->validate([
-            'date'         => 'required|date',
+            'date'         => 'required|date|after_or_equal:today', // não permite datas passadas
             'class_number' => 'required|integer|min:1|max:7',
             'place_id'     => 'required|exists:places,id',
             'shift'        => 'required|string',
         ]);
 
         // 2. Regra de Negócio: Verificar se já existe agendamento
-        // SELECT * FROM schedulings WHERE date = ? AND class = ? AND place = ?
         $exists = Scheduling::where('date', $validated['date'])
             ->where('class_number', $validated['class_number'])
             ->where('place_id', $validated['place_id'])
