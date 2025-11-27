@@ -6,119 +6,124 @@ use App\Models\Scheduling;
 use App\Models\Place;
 use Illuminate\Http\Request;
 use App\Events\SchedulingCreated;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class SchedulingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        // $places = Place::all(); //SELECT * FROM places
-        // return view('Scheduling/index', ['places' => $places]);
-
-        //Data atual
-        $date= now()->toDateString();
-
-        //Colunas = labs
-        $places = Place::orderBy('name')->get(['id','name']);
-
-        //Linha = Aulas (1 até 7)
-        $classNumber = range(1,7);
+        // 1. Define a data (pela URL ou hoje)
+        $date = $request->query('date', now()->toDateString());
         
-        $schedules = Scheduling::query()
-        ->select(['class_number', 'place_id', 'user_id', 'shift']) //Trás os campos do BD
-        ->with(['user:id,name', 'place:id,name']) //Faz buscas na outr tabela
-        ->whereDate('date', $date) //Condição
-        ->get() //Realiza a consulta
-        ->keyBy(fn($s) => $s->class_number.'-'.$s->place_id); //Chave
+        // Formata para exibição bonita na view (ex: "Quarta-feira, 21 de Novembro")
+        $dateCarbon = Carbon::parse($date)->locale('pt-BR');
+        $dateFormatted = $dateCarbon->translatedFormat('l, d \d\e F \d\e Y');
 
-        $lookup= [];
-        foreach ($classNumber as $class) {
-            foreach ($places as $place) {
-                //Pega do schedules se existir
-                $lookup[$class][$place->id] = $schedules[$class.'-'.$place->id]
-                    ??[
-                        "class_number"=>$class,
-                        "place_id"=>$place->id,
-                        "shift"=>"MANHA"
-                    ];
-            }
-        }//Fim do foreach
-        return view('Scheduling/index', ['schedules'=>$lookup, "places"=>$places]);
-        return $lookup;
+        // 2. Busca Laboratórios
+        $places = Place::orderBy('name')->get(['id', 'name']);
+
+        // 3. Busca Agendamentos EXISTENTES nessa data
+        $schedules = Scheduling::with(['user:id,name'])
+            ->whereDate('date', $date)
+            ->get()
+            // Cria uma chave única para busca rápida: "aula-labID"
+            ->keyBy(fn($s) => $s->class_number . '-' . $s->place_id);
+
+        // 4. Aulas (1 a 7)
+        $classNumbers = range(1, 7);
+
+        return view('Scheduling.index', [
+            'schedules'    => $schedules,
+            'places'       => $places,
+            'classNumbers' => $classNumbers,
+            'currentDate'  => $date,
+            'dateFormatted'=> $dateFormatted,
+            'nextDay'      => $dateCarbon->copy()->addDay()->toDateString(),
+            'prevDay'      => $dateCarbon->copy()->subDay()->toDateString(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
+        // 1. Validação dos dados recebidos
+        $validated = $request->validate([
+            'date'         => 'required|date',
+            'class_number' => 'required|integer|min:1|max:7',
+            'place_id'     => 'required|exists:places,id',
+            'shift'        => 'required|string',
+        ]);
 
-        try {
-            //Criando o objeto e definindo os seus atributos
-            $scheduling = new Scheduling();
-            $scheduling->date = $request->date;
-            $scheduling->class_number = $request->class_number;
-            $scheduling->shift = $request->shift;
-            $scheduling->place_id = $request->place_id;
-            $scheduling->user_id = $request->user_id;
+        // 2. Regra de Negócio: Verificar se já existe agendamento
+        // SELECT * FROM schedulings WHERE date = ? AND class = ? AND place = ?
+        $exists = Scheduling::where('date', $validated['date'])
+            ->where('class_number', $validated['class_number'])
+            ->where('place_id', $validated['place_id'])
+            ->exists();
 
-            //Chama a função que salva no banco de dados
-            $scheduling->save();
-
-            //Emitir o broadcast de agendamento para todos os ouvintes
-            event(new SchedulingCreated($scheduling));
-
-            //Redireciona para a página principal
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
+        if ($exists) {
             return response()->json([
-                'success'=> false,
-                'message'=> $e->getMessage()
-            ], 500);
+                'success' => false,
+                'message' => 'Este horário já foi reservado por outro usuário.'
+            ], 409); // 409 Conflict
         }
 
+        try {
+            // 3. Criação
+            $scheduling = Scheduling::create([
+                'date'         => $validated['date'],
+                'class_number' => $validated['class_number'],
+                'shift'        => $validated['shift'],
+                'place_id'     => $validated['place_id'],
+                'user_id'      => Auth::id(), // Pega o ID do usuário logado seguramente
+            ]);
+
+            // 4. Evento (Websocket)
+            event(new SchedulingCreated($scheduling));
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Agendamento realizado com sucesso!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Erro interno ao salvar.'
+            ], 500);
+        }
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Scheduling $scheduling)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Scheduling $scheduling)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Scheduling $scheduling)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
+     * Remove o agendamento especificado do storage.
      */
     public function destroy(Scheduling $scheduling)
     {
-        //
+        // 1. Autorização: Verifica se o usuário logado é o dono do agendamento
+        if ($scheduling->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Você não tem permissão para cancelar este agendamento.'
+            ], 403); // 403 Forbidden
+        }
+
+        try {
+            $scheduling->delete();
+            
+            // Aqui você pode disparar um evento para o Laravel Echo (ex: SchedulingDeleted)
+            // event(new SchedulingDeleted($scheduling)); 
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Agendamento cancelado com sucesso.',
+                'schedule' => $scheduling // Retorna o objeto para uso no front (opcional)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Erro interno ao cancelar o agendamento.'
+            ], 500);
+        }
     }
 }
