@@ -19,9 +19,14 @@
     {{-- Card do formulário --}}
     <div class="bg-white shadow-lg rounded-2xl p-6 border border-purple-200">
 
-        <form action="" method="POST" class="space-y-5">
+        <form 
+            action="@isset($place) {{ route('places.update', $place->id) }} @else {{ route('places.store') }} @endisset" 
+            method="POST" 
+            class="space-y-5"
+        >
             @isset($place)
-                @method('put')
+                @method('put') 
+                <input type="hidden" name="id" value="{{ $place->id }}">
             @endisset
 
             @csrf

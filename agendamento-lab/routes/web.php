@@ -25,6 +25,11 @@ Route::middleware('auth')->group(function() {
     Route::get('/places', [PlaceController::class, 'index'])->name('places.index');
     Route::get('/places/new', [PlaceController::class, 'create'])->name('places.create');
     Route::post('/places', [PlaceController::class, 'store'])->name('places.store');
+    
+    // Rotas para edição de Espaços (Places)
+    Route::get('/places/{place}/edit', [PlaceController::class, 'edit'])->name('places.edit');
+    Route::put('/places/{place}', [PlaceController::class, 'update'])->name('places.update');
+    
     Route::delete('/places/{place}', [PlaceController::class, 'destroy'])->name('places.destroy');
 
     // Rotas de Agendamento (Scheduling)

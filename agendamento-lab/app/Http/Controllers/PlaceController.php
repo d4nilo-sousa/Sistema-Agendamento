@@ -32,7 +32,7 @@ public function create(){
  * redireciona o usuário para a página principal.
  *
  * @param \Illuminate\Http\Request $request Objeto da requisição contendo os dados do formulário.
- * @return \Illuminate\Http\RedirectResponse Redireciona para a página inicial após salvar.
+ * @return \Illuminate\Http\RedirectResponse Redireciona para a página de índice após salvar.
  */
 public function store(Request $request){
     //Criando o objeto e definindo os seus atributos
@@ -44,14 +44,15 @@ public function store(Request $request){
     //Chama a função que salva no banco de dados
     $place->save();
 
-    //Redireciona para a página principal
-    return redirect()->back()->with('success','Cadastrado com sucesso');
+    // CORREÇÃO: Redireciona para a rota places.index com mensagem de sucesso
+    return redirect()->route('places.index')->with('success','Espaço cadastrado com sucesso!');
     }// Fim do store
 
 public function destroy($id){
     $place = Place::findOrFail($id);
     $place->delete();
-    return redirect('/places');
+    // Redireciona para a rota places.index
+    return redirect()->route('places.index');
 }//Fim do destroy
 
 public function edit($id){
@@ -68,7 +69,8 @@ public function update(Request $request){
 
     //Chama a função que atualiza no banco de dados
     $place->update();
-    return redirect('/places');
+    // CORREÇÃO: Redireciona para a rota places.index com mensagem de sucesso
+    return redirect()->route('places.index')->with('success','Espaço atualizado com sucesso!');
 }//Fim do update
 
 }//Fim da classe
