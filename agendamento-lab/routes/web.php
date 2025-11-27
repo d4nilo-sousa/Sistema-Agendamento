@@ -22,7 +22,10 @@ Route::middleware('auth')->group(function() {
     Route::get('logout', [UserController::class, 'logout']);
 
     // Rotas de Espaço (Places)
-    Route::resource('places', PlaceController::class)->except(['show']);
+    Route::get('/places', [PlaceController::class, 'index'])->name('places.index');
+    Route::get('/places/new', [PlaceController::class, 'create'])->name('places.create');
+    Route::post('/places', [PlaceController::class, 'store'])->name('places.store');
+    Route::delete('/places/{place}', [PlaceController::class, 'destroy'])->name('places.destroy');
 
     // Rotas de Agendamento (Scheduling)
     // Exibe a grade

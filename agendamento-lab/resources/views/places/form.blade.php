@@ -86,18 +86,6 @@
 
 </div>
 
-{{-- Toast --}}
-<div class="toast-container position-fixed top-0 end-0 p-3">
-    <div data-bs-delay="2000" id="liveToast" class="toast" role="alert">
-        <div class="toast-header">
-            <strong class="me-auto text-purple-700"><i class="bi bi-stars"></i> Sistema</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body">
-            {{ session('success') }}
-        </div>
-    </div>
-</div>
 
 @endsection
 
